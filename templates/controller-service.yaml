@@ -11,14 +11,10 @@ metadata:
 spec:
   {{- with .Values.controller.service }}
   type: {{ .type }}
-  {{- $type := .type }}
   ports:
     {{- range .ports }}
     - port: {{ .number }}
       targetPort: {{ .name }}
-      {{- if eq $type "NodePort" }}
-      nodePort: {{ default 30202 $.Values.publicPort }}
-      {{- end }}
       protocol: TCP
       name: {{ .name }}
     {{- end }}

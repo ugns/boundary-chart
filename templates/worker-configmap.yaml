@@ -20,7 +20,7 @@ data:
       name        = "kubernetes-worker"
       description = "Boundary kubernetes-worker"
       controllers = [{{ default (printf "%s.%s" ($fullname) (.Release.Namespace)) .Values.publicClusterAddress | quote }}]
-      public_addr = "{{ default "localhost" .Values.publicAddress }}:{{ default 9202 .Values.publicPort}}"
+      public_addr = "{{ default "localhost" .Values.publicAddress }}"
     }
 
     listener "tcp" {

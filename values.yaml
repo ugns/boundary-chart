@@ -68,7 +68,7 @@ controller:
 
 worker:
   service:
-    type: NodePort
+    type: ClusterIP
     ports:
       - name: proxy
         number: 9202

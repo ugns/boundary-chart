@@ -11,6 +11,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 data:
+  {{- $fullname := include "boundary.fullname" . }}
   boundary-config-admin.hcl: |
     disable_mlock = true
     log_format    = "standard"
@@ -25,7 +26,7 @@ data:
         url = "postgresql://{{ default "postgres" .Values.database.username }}:{{ default "postgres" .Values.database.password }}@{{ .Values.database.address }}:{{ default "5432" .Values.database.port }}/{{ default "boundary" .Values.database.name }}{{- if ne .Values.database.ssl true }}?sslmode=disable{{- end }}"
       {{- end }}
       }
-      public_cluster_addr = "{{ include "boundary.fullname" . }}.{{ .Release.Namespace }}"
+      public_cluster_addr = {{ default (printf "%s.%s" ($fullname) (.Release.Namespace)) .Values.publicClusterAddress | quote }}
     }
     
     listener "tcp" {
@@ -37,7 +38,6 @@ data:
     listener "tcp" {
       address     = "0.0.0.0"
       purpose     = "cluster"
-      tls_disable = true
     }
 
     listener "tcp" {
@@ -115,7 +115,6 @@ data:
     listener "tcp" {
       address     = "0.0.0.0"
       purpose     = "cluster"
-      tls_disable = true
     }
 
     listener "tcp" {
