@@ -1,0 +1,169 @@
+# Default values for boundary.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: hashicorp/boundary
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# publicAddress: boundary.example.com
+# publicPort: 30202
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecrets: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+controller:
+  service:
+      type: ClusterIP
+      ports: 
+        - name: api
+          number: 9200
+        - name: cluster
+          number: 9201
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: boundary.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: api
+    tls: []
+    #  - secretName: boundary-tls
+    #    hosts:
+    #      - boundary.local
+
+worker:
+  service:
+    type: NodePort
+    ports:
+      - name: proxy
+        number: 9202
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: boundary.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: proxy
+    tls: []
+    #  - secretName: boundary-tls
+    #    hosts:
+    #      - boundary.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+database:
+  username: postgres
+  password: postgres
+  name: boundary
+  address: postgresql
+  # port: 5432
+  ssl: false
+
+vault:
+  enabled: false
+  address:  https://vault:8200
+  # tls:
+  #   caCert: 
+  #   clientCert:
+  #   clientKey:
+  #   serverName:
+  #   skipVerify:
+
+  database:
+    enabled: false
+    role: boundary
+    vaultAdminCredPath: database/static-creds/boundary-db
+    vaultCredPath: database/creds/boundary-db
+
+aead:
+  enabled: true
+
+awskms:
+  enabled: false
+
+keys:
+  # For mor information on configuring resouces, see the Boundary KMS AEAD documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/aead
+  aead:
+  # - purpose:
+  #   type: aes-gcm
+  #   id:
+  #   key:
+
+  # For mor information on configuring resouces, see the Boundary KMS transit documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/transit
+  vault:
+  # - purpose:
+  #   disableRenewal:
+  #   keyName:
+  #   mountPath:
+  #   namespace:
+
+  # For mor information on configuring resouces, see the Boundary KMS AWS KMS documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/awskms
+  awskms:
+  # - purpose:
+  #   kmsKeyId:

@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "boundary.fullname" . }}-controller-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-controller
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  boundary-config-admin.hcl: |
+    disable_mlock = true
+    log_format    = "standard"
+
+    controller {
+      name        = "kubernetes-controller"
+      description = "Boundary kubernetes-controller"
+      database {
+      {{- if .Values.vault.enabled }}
+        url = "file:///vault/secrets/database-creds-admin.txt"
+      {{- else }}
+        url = "postgresql://{{ default "postgres" .Values.database.username }}:{{ default "postgres" .Values.database.password }}@{{ .Values.database.address }}:{{ default "5432" .Values.database.port }}/{{ default "boundary" .Values.database.name }}{{- if ne .Values.database.ssl true }}?sslmode=disable{{- end }}"
+      {{- end }}
+      }
+      public_cluster_addr = "{{ include "boundary.fullname" . }}.{{ .Release.Namespace }}"
+    }
+    
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "api"
+      tls_disable = true
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "cluster"
+      tls_disable = true
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "ops"
+      tls_disable = true
+    }
+
+    {{- if .Values.aead.enabled }}
+      {{- range .Values.keys.aead }}
+
+    kms "aead" {
+      purpose   = {{ .purpose | quote }}
+      key_id    = {{ default (printf "global_%s" (.purpose)) .id | quote }}
+      aead_type = {{ default "aes-gcm" .type |  quote }}
+      key       = {{ .key | quote }}
+    }
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.vault.enabled }}
+      {{- $address := .Values.vault.address }}
+      {{- $tls := .Values.vault.tls }}
+      {{- range .Values.keys.vault }}
+    kms "transit" {
+      purpose         = {{ .purpose | quote }}
+      address         = {{ $address | quote }}
+      disable_renewal = {{ default "false" .disableRenewal | quote }}
+      key_name        = {{ .keyName | quote }}
+      mount_path      = {{ .mountPath | quote }}
+      namespace       = {{ default "" .namespace | quote }}
+      {{- with $tls }}
+      tls_ca_cert     = {{ default "" .caCert | quote }}
+      tls_client_cert = {{ default "" .clientCert | quote }}
+      tls_client_key  = {{ default "" .clientKey | quote }}
+      tls_server_name = {{ default "" .serverName | quote }}
+      tls_skip_verify = {{ default "false" .skipVerify | quote }}
+      {{- end }}
+    }
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.awskms.enabled }}
+      {{- range .Values.keys.awskms }}
+
+    kms "awskms" {
+      purpose    = {{ .purpose | quote }}
+      kms_key_id = {{ .kmsKeyId | quote }}
+    }
+      {{- end }}
+    {{- end }}
+  boundary-config.hcl: |
+    disable_mlock = true
+    log_format    = "standard"
+
+    controller {
+      name        = "kubernetes-controller"
+      description = "Boundary kubernetes-controller"
+      database {
+      {{- if .Values.vault.enabled }}
+        url = "file:///vault/secrets/database-creds.txt"
+      {{- else }}
+        url = "postgresql://{{ default "postgres" .Values.database.username }}:{{ default "postgres" .Values.database.password }}@{{ .Values.database.address }}:{{ default "5432" .Values.database.port }}/{{ default "boundary" .Values.database.name }}{{- if ne .Values.database.ssl true }}?sslmode=disable{{- end }}"
+      {{- end }}
+      }
+      public_cluster_addr = "{{ include "boundary.fullname" . }}.{{ .Release.Namespace }}"
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "api"
+      tls_disable = true
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "cluster"
+      tls_disable = true
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "ops"
+      tls_disable = true
+    }
+
+    {{- if .Values.vault.enabled }}
+      {{- $address := .Values.vault.address }}
+      {{- $tls := .Values.vault.tls }}
+      {{- range .Values.keys.vault }}
+
+    kms "transit" {
+      purpose         = {{ .purpose | quote }}
+      address         = {{ $address | quote }}
+      disable_renewal = {{ default "false" .disableRenewal | quote }}
+      key_name        = {{ .keyName | quote }}
+      mount_path      = {{ .mountPath | quote }}
+      namespace       = {{ default "" .namespace | quote }}
+      {{- with $tls }}
+      tls_ca_cert     = {{ default "" .caCert | quote }}
+      tls_client_cert = {{ default "" .clientCert | quote }}
+      tls_client_key  = {{ default "" .clientKey | quote }}
+      tls_server_name = {{ default "" .serverName | quote }}
+      tls_skip_verify = {{ default "false" .skipVerify | quote }}
+      {{- end }}
+    }
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.aead.enabled }}
+      {{- range .Values.keys.aead }}
+
+    kms "aead" {
+      purpose   = {{ .purpose | quote }}
+      key_id    = {{ default (printf "global_%s" (.purpose)) .id | quote }}
+      aead_type = {{ default "aes-gcm" .type |  quote }}
+      key       = {{ .key | quote }}
+    }
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.awskms.enabled }}
+      {{- range .Values.keys.awskms }}
+
+    kms "awskms" {
+      purpose    = {{ .purpose | quote }}
+      kms_key_id = {{ .kmsKeyId | quote }}
+    }
+      {{- end }}
+    {{- end }}

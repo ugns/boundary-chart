@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "boundary.fullname" . }}-worker-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-worker
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- $fullname := include "boundary.fullname" . }}
+  boundary-config.hcl: |
+    disable_mlock = true
+    log_format    = "standard"
+
+    worker {
+      name        = "kubernetes-worker"
+      description = "Boundary kubernetes-worker"
+      controllers = [{{ default (printf "%s.%s" ($fullname) (.Release.Namespace)) .Values.publicClusterAddress | quote }}]
+      public_addr = "{{ default "localhost" .Values.publicAddress }}:{{ default 9202 .Values.publicPort}}"
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "proxy"
+      tls_disable = true
+    }
+
+    {{- if .Values.aead.enabled }}
+      {{- range .Values.keys.aead }}
+        {{- if eq .purpose "worker-auth" }}
+
+    kms "aead" {
+      purpose   = {{ .purpose | quote }}
+      key_id    = {{ default (printf "global_%s" (.purpose)) .id | quote }}
+      aead_type = {{ default "aes-gcm" .type |  quote }}
+      key       = {{ .key | quote }}
+    }
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.vault.enabled }}
+      {{- $address := .Values.vault.address }}
+      {{- $tls := .Values.vault.tls }}
+      {{- range .Values.keys.vault }}
+        {{- if eq .purpose "worker-auth" }}
+
+    kms "transit" {
+      purpose         = {{ .purpose | quote }}
+      address         = {{ $address | quote }}
+      disable_renewal = {{ default "false" .disableRenewal | quote }}
+      key_name        = {{ .keyName | quote }}
+      mount_path      = {{ .mountPath | quote }}
+      namespace       = {{ default "" .namespace | quote }}
+      {{- with $tls }}
+      tls_ca_cert     = {{ default "" .caCert | quote }}
+      tls_client_cert = {{ default "" .clientCert | quote }}
+      tls_client_key  = {{ default "" .clientKey | quote }}
+      tls_server_name = {{ default "" .serverName | quote }}
+      tls_skip_verify = {{ default "false" .skipVerify | quote }}
+      {{- end }}
+    }
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
+    {{- if .Values.awskms.enabled }}
+      {{- range .Values.keys.awskms }}
+        {{- if eq .purpose "worker-auth" }}
+
+    kms "awskms" {
+      purpose    = {{ .purpose | quote }}
+      kms_key_id = {{ .kmsKeyId | quote }}
+    }
+        {{- end }}
+      {{- end }}
+    {{- end }}

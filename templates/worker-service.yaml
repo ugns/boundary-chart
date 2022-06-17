@@ -1,0 +1,28 @@
+{{- $fullName := include "boundary.fullname" . }}
+{{- $selectorLabels := include "boundary.selectorLabels" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-worker
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-worker
+spec:
+  {{- with .Values.worker.service }}
+  type: {{ .type }}
+  {{- $type := .type }}
+  ports:
+    {{- range .ports }}
+    - port: {{ .number }}
+      targetPort: {{ .name }}
+      {{- if eq $type "NodePort" }}
+      nodePort: {{ default 30202 $.Values.publicPort }}
+      {{- end }}
+      protocol: TCP
+      name: {{ .name }}
+    {{- end }}
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: boundary-worker
+  {{- end }}
