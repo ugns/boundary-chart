@@ -1,0 +1,106 @@
+{{- if .Values.controller.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "boundary.fullname" . }}-init
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-init
+  annotations:
+  {{- with .Values.serviceAccount.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+    helm.sh/hook: pre-install,pre-upgrade,pre-rollback
+spec:
+  template:
+    metadata:
+      annotations:
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.vault.enabled .Values.vault.database.enabled }}
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-status: "update"
+        vault.hashicorp.com/agent-pre-populate-only: "true"
+        vault.hashicorp.com/agent-cache-enable: "true"
+        {{- with .Values.vault.database }}
+        vault.hashicorp.com/role: {{ .role | quote }}
+        vault.hashicorp.com/agent-inject-secret-boundary-database-creds: {{ .vaultAdminCredPath | quote }}
+        vault.hashicorp.com/agent-inject-template-boundary-database-creds: |
+          {{`{{- with secret `}}{{ .vaultAdminCredPath | quote }}{{` -}}`}}
+          {{`postgresql://{{ .Data.username }}:{{ .Data.password }}`}}@{{ $.Values.database.address }}:{{ default "5432" $.Values.database.port }}/{{ default "boundary" $.Values.database.name }}{{- if ne $.Values.database.ssl true }}?sslmode=disable{{- end }}
+          {{`{{- end }}`}}
+        {{- end }}
+      {{- end }}
+      labels:
+        {{- include "boundary.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: boundary-init
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "boundary.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: OnFailure
+      initContainers:
+        - name: {{ .Chart.Name }}-controller-scale-down
+          image: bitnami/kubectl:{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - "-c"
+            - "kubectl scale --replicas=0 deployment/{{ include "boundary.fullname" . }}-controller"
+      containers:
+        - name: {{ .Chart.Name }}-init
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag}}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - "-c"
+          args:
+           - boundary database migrate -config /boundary/boundary-config.hcl || boundary database init {{ include "boundary.database.init" . | trim }} -config /boundary/boundary-config.hcl || sleep 10000
+          env:
+            - name: HOSTNAME
+              value: boundary
+            {{- range .Values.podSecrets }}
+            - name: {{ .keyName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .keyName }}
+            {{- end }}
+          volumeMounts:
+            - name: boundary-config
+              mountPath: /boundary
+              readOnly: true
+        {{- if not .Values.controller.autoscaling.enabled }}
+        - name: {{ .Chart.Name }}-controller-scale-up
+          image: bitnami/kubectl:{{ .Capabilities.KubeVersion.Major }}.{{ .Capabilities.KubeVersion.Minor }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - "-c"
+            - "kubectl scale --replicas={{ default .Values.global.replicaCount .Values.controller.replicaCount }} deployment/{{ include "boundary.fullname" . }}-controller"
+        {{- end }}
+      volumes:
+        - name: boundary-config
+          configMap:
+            name: {{ include "boundary.fullname" . }}-controller-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end -}}

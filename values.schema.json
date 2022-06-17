@@ -1,0 +1,328 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string"
+        },
+        "pullPolicy": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "annotations": {
+          "type": [
+            "object",
+            "string"
+          ]
+        },
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "controller": {
+      "type": "object",
+      "properties": {
+        "initOptions": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "ports": {
+              "type": "object",
+              "properties": {
+                "proxy": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "number": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "annotations": {
+              "type": [
+                "object",
+                "string"
+              ]
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "paths": {
+                    "type": "array"
+                  }
+                }
+              }
+            },
+            "className": {
+              "type": "string"
+            },
+            "labels": {
+              "type": "object"
+            },
+            "pathType": {
+              "type": "string"
+            },
+            "tls": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "worker": {
+      "type": "object",
+      "properties": {
+        "initOptions": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 0
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "ports": {
+              "type": "object",
+              "properties": {
+                "proxy": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "number": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "annotations": {
+              "type": [
+                "object",
+                "string"
+              ]
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "paths": {
+                    "type": "array"
+                  }
+                }
+              }
+            },
+            "className": {
+              "type": "string"
+            },
+            "labels": {
+              "type": "object"
+            },
+            "pathType": {
+              "type": "string"
+            },
+            "tls": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "ssl": {
+          "type": "boolean"
+        }
+      }
+    },
+    "vault": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": [
+            "boolean",
+            "string"
+          ]
+        },
+        "address": {
+          "type": "string",
+          "format": "uri"
+        },
+        "tls": {
+          "type": "object",
+          "properties": {
+            "caCert": {
+              "type": "string"
+            },
+            "clientCert": {
+              "type": "string"
+            },
+            "clientKey": {
+              "type": "string"
+            },
+            "serverName": {
+              "type": "string"
+            },
+            "skipVerify": {
+              "type": "string"
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": [
+                "boolean",
+                "string"
+              ]
+            },
+            "role": {
+              "type": "string"
+            },
+            "vaultAdminCredPath": {
+              "type": "string"
+            },
+            "vaultCredPath": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "aead": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": [
+            "boolean",
+            "string"
+          ]
+        }
+      }
+    },
+    "awskms": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": [
+            "boolean",
+            "string"
+          ]
+        }
+      }
+    },
+    "keys": {
+      "type": "object",
+      "properties": {
+        "aead": {
+          "type": "array",
+          "properties": {
+            "purpose": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            }
+          }
+        },
+        "vault": {
+          "type": "array",
+          "properties": {
+            "purpose": {
+              "type": "string"
+            },
+            "disableRenewal": {
+              "type": "boolean"
+            },
+            "keyName": {
+              "type": "string"
+            },
+            "mountPath": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            }
+          }
+        },
+        "awskms": {
+          "type": "array",
+          "properties": {
+            "purpose": {
+              "type": "string"
+            },
+            "kmsKeyId": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
