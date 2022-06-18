@@ -1,0 +1,233 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "type": "object",
+    "properties": {
+        "image": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string"
+                },
+                "pullPolicy": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": [
+                        "object",
+                        "string"
+                    ]
+                },
+                "create": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller": {
+            "type": "object",
+            "properties": {
+                "initOptions": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 0
+                },
+                "service": {
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "object",
+                    "properties": {
+                        "api": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "number": "integer"
+                            }
+                        },
+                        "cluster": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "number": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "worker": {
+            "type": "object",
+            "properties": {
+                "initOptions": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 0
+                },
+                "service": {
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "object",
+                    "properties": {
+                        "proxy": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "number": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "database": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"                  
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "ssl": {
+                    "type": "boolean"
+                }              
+            }
+        },
+        "vault": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "address": {
+                    "type": "string",
+                    "format": "uri"
+                },
+                "tls": {
+                    "type": "object",
+                    "properties": {
+                        "caCert": {
+                            "type": "string"
+                        },
+                        "clientCert": {
+                            "type": "string"
+                        },
+                        "clientKey": {
+                            "type": "string"
+                        },
+                        "serverName": {
+                            "type": "string"
+                        },
+                        "skipVerify": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "database": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "role": {
+                            "type": "string"
+                        },
+                        "vaultAdminCredPath": {
+                            "type": "string"
+                        },
+                        "vaultCredPath": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "aead": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "awskms": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "keys": {
+            "type": "object",
+            "properties": {
+                "aead": {
+                    "type": "array",
+                    "properties": {
+                        "purpose": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "key": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "vault": {
+                    "type": "array",
+                    "properties": {
+                        "purpose": {
+                            "type": "string"
+                        },
+                        "disableRenewal": {
+                            "type": "boolean"
+                        },
+                        "keyName": {
+                            "type": "string"
+                        },
+                        "mountPath": {
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "awskms": {
+                    "type": "array",
+                    "properties": {
+                        "purpose": {
+                            "type": "string"
+                        },
+                        "kmsKeyId": {
+                            "type": "string"
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}

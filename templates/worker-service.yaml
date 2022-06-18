@@ -9,16 +9,14 @@ metadata:
     {{- include "boundary.labels" . | nindent 4 }}
     app.kubernetes.io/component: boundary-worker
 spec:
-  {{- with .Values.worker.service }}
-  type: {{ .type }}
+  type: {{ .Values.worker.service.type }}
   ports:
-    {{- range .ports }}
-    - port: {{ .number }}
-      targetPort: {{ .name }}
+    {{- range $name, $port := .Values.worker.service.ports }}
+    - port: {{ $port.number }}
+      targetPort: {{ $name }}
       protocol: TCP
-      name: {{ .name }}
+      name: {{ $name }}
     {{- end }}
   selector:
     {{- $selectorLabels | nindent 4 }}
     app.kubernetes.io/component: boundary-worker
-  {{- end }}

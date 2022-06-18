@@ -60,7 +60,7 @@ spec:
             - /bin/sh
             - "-c"
           args:
-           - boundary database migrate -config /boundary/boundary-config-admin.hcl || boundary database init -skip-auth-method-creation -skip-host-resources-creation -skip-scopes-creation -config /boundary/boundary-config-admin.hcl || sleep 10000
+           - boundary database migrate -config /boundary/boundary-config-admin.hcl || boundary database init {{ include "boundary.database.init" . | trim }} -config /boundary/boundary-config-admin.hcl || sleep 10000
           env:
             - name: HOSTNAME
               value: boundary

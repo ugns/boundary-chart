@@ -10,9 +10,6 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-# publicAddress: boundary.example.com
-# publicPort: 30202
-
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -42,12 +39,19 @@ securityContext: {}
   # runAsUser: 1000
 
 controller:
+  # initOptions is a list of options to enable for `boundary database init` call on a fresh installation
+  initOptions:
+  # - skip-auth-method-creation
+  # - skip-host-resources-creation
+  # - skip-initial-login-role-creation
+  # - skip-scopes-creation
+  # - skip-target-creation
   service:
       type: ClusterIP
       ports: 
-        - name: api
+        api:
           number: 9200
-        - name: cluster
+        cluster:
           number: 9201
   ingress:
     enabled: false
@@ -70,7 +74,7 @@ worker:
   service:
     type: ClusterIP
     ports:
-      - name: proxy
+      proxy:
         number: 9202
   ingress:
     enabled: false
@@ -124,7 +128,7 @@ database:
 
 vault:
   enabled: false
-  address:  https://vault:8200
+  address: https://vault:8200
   # tls:
   #   caCert: 
   #   clientCert:
