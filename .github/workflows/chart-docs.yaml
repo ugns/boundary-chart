@@ -12,30 +12,8 @@ jobs:
       contents: write
 
     steps:
-    - name: Generate token
-      id: generate_token
-      uses: tibdex/github-app-token@v1
-      with:
-        app_id: ${{ secrets.GH_APP_ID }}
-        private_key: ${{ secrets.GH_PRIVATE_KEY }}
-        installation_id: ${{ secrets.GH_INSTALLATION_ID }}
-
-    # Checkout the pull request branch
-    #  "An action in a workflow run can’t trigger a new workflow run. For example, if an action pushes code using
-    #   the repository’s GITHUB_TOKEN, a new workflow will not run even when the repository contains
-    #   a workflow configured to run when push events occur."
-    # However, using a personal access token will cause events to be triggered.
-    # We need that to ensure a status gets posted after the auto-format commit.
-    # We also want to trigger tests if the auto-format made no changes.
-    - uses: actions/checkout@v3
-      if: github.event.pull_request.state == 'open'
-      name: Privileged Checkout
-      with:
-        token: ${{ steps.generate_token.outputs.token }}
-        repository: ${{ github.event.pull_request.head.repo.full_name }}
-        # Check out the PR commit, not the merge commit
-        # Use `ref` instead of `sha` to enable pushing back to `ref`
-        ref: ${{ github.event.pull_request.head.ref }}
+    - name: Checkout
+      uses: actions/checkout@v3
 
     - name: Install helm-docs
       run: |
