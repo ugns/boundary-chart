@@ -15,18 +15,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install helm-docs
-      run: |
-        cd /tmp
-        wget -q https://github.com/norwoodj/helm-docs/releases/download/v${{env.HELM_DOCS_VERSION}}/helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
-        tar -xvf helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
-        sudo mv helm-docs /usr/local/bin
-      env:
-        HELM_DOCS_VERSION: "1.10.0"
-
     - name: Run helm-docs
-      run: |
-        helm-docs
+      uses: softwaremill/helm-docs-action
 
     - name: Commit changes to the PR branch
       if: github.event.pull_request.state == 'open'
