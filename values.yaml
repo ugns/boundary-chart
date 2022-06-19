@@ -5,9 +5,12 @@
 replicaCount: 1
 
 image:
+  # -- The docker image repository to use
   repository: hashicorp/boundary
+  # -- the docker image pull policy
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # -- the docker image tag to use 
+  # @default Chart appVersion
   tag: ""
 
 imagePullSecrets: []
@@ -40,7 +43,7 @@ securityContext: {}
 
 controller:
   # initOptions is a list of options to enable for `boundary database init` call on a fresh installation
-  initOptions:
+  initOptions: []
   # - skip-auth-method-creation
   # - skip-host-resources-creation
   # - skip-initial-login-role-creation
@@ -127,9 +130,14 @@ database:
   ssl: false
 
 vault:
+  # -- to enable Hashicorp Vault for Transit KMS keys and database credentials
+  # @default false
   enabled: false
-  address: https://vault:8200
-  # tls:
+  # -- the Hashicorp Vault address to use
+  # @default http://vault:8200
+  address: http://vault:8200
+  # -- the Hashicorp Vault TLS settings to use
+  tls: {}
   #   caCert: 
   #   clientCert:
   #   clientKey:
@@ -137,21 +145,31 @@ vault:
   #   skipVerify:
 
   database:
+    # -- to enable Hashicorp Vault lookup for database credentials
+    # @default false
     enabled: false
+    # -- the Hashicorp Vault Postgres Database Secret role to use
     role: boundary
+    # -- the Hashicorp Vault secret path for admin credentials
     vaultAdminCredPath: database/static-creds/boundary-db
+    # -- the Hashicorp Vault secret path for application credentials
     vaultCredPath: database/creds/boundary-db
 
 aead:
+  # -- to enable AEAD KMS keys
+  # @default true
   enabled: true
 
 awskms:
+  # -- to enable AWS KMS keys
+  # @default false
   enabled: false
 
 keys:
   # For mor information on configuring resouces, see the Boundary KMS AEAD documentation:
   # https://www.boundaryproject.io/docs/configuration/kms/aead
-  aead:
+  # -- the AEAD KMS keys to configure if enabled
+  aead: []
   # - purpose:
   #   type: aes-gcm
   #   id:
@@ -159,7 +177,8 @@ keys:
 
   # For mor information on configuring resouces, see the Boundary KMS transit documentation:
   # https://www.boundaryproject.io/docs/configuration/kms/transit
-  vault:
+  # -- the Hashicorp Vault Transit KMS keys to configure if enabled
+  vault: []
   # - purpose:
   #   disableRenewal:
   #   keyName:
@@ -168,6 +187,7 @@ keys:
 
   # For mor information on configuring resouces, see the Boundary KMS AWS KMS documentation:
   # https://www.boundaryproject.io/docs/configuration/kms/awskms
-  awskms:
+  # -- the AWS KMS keys to configure if enabled
+  awskms: []
   # - purpose:
   #   kmsKeyId:
