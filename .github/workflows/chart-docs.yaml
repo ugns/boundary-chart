@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Run helm-docs
-      uses: softwaremill/helm-docs-action
+      uses: softwaremill/helm-docs-action@874f27f2798f274bad83f9fa8205bfa5715de39e
 
     - name: Commit changes to the PR branch
       if: github.event.pull_request.state == 'open'
