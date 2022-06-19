@@ -11,6 +11,11 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
       - name: Install helm-docs
         run: |
           cd /tmp
