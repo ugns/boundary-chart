@@ -6,7 +6,7 @@
 
 ## Description
 
-A Helm chart for Hashicorp Boundary
+A Helm chart for Hashicorp Boundary deployment
 
 ## Usage
 <fill out>
