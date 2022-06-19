@@ -1,0 +1,48 @@
+# Hashicorp Boundary
+
+![Version: {{ .Version }}](https://img.shields.io/badge/Version-{{ .Version | replace "-" "--" }}-informational?style=for-the-badge)
+{{ if .Type }}![Type: {{ .Type }}](https://img.shields.io/badge/Type-{{ .Type }}-informational?style=for-the-badge) {{ end }}
+{{ if .AppVersion }}![AppVersion: {{ .AppVersion }}](https://img.shields.io/badge/AppVersion-{{ .AppVersion | replace "-" "--" }}-informational?style=for-the-badge) {{ end }}
+
+![Docker](https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+[![Helm](https://img.shields.io/badge/helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)](https://helm.sh/)
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/boundary&style=for-the-badge)](https://artifacthub.io/packages/search?repo=boundary)
+
+## Description
+
+{{ template "chart.description" . }}
+
+## Usage
+
+Please add the UnderGrid Network Services repository before installing any chart provided by this repository:
+
+```bash
+helm repo add undergrid https://ugns.github.io/helm-charts
+helm repo update
+```
+
+### Installing the Chart
+
+To install the chart with the release name boundary run:
+
+```bash
+helm install boundary undergrid/boundary --version {{ .Version }}
+```
+
+After a few seconds, boundary should be running.
+
+To install the chart in a specific namespace use following commands:
+
+```bash
+helm install boundary undergrid/boundary --namespace boundary --create-namespace --version {{ .Version }}
+```
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.maintainersSection" . }}
