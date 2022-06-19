@@ -1,0 +1,55 @@
+name: chart-docs
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+jobs:
+  chart-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install helm-docs
+      run: |
+        cd /tmp
+        wget https://github.com/norwoodj/helm-docs/releases/download/v${{env.HELM_DOCS_VERSION}}/helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
+        tar -xvf helm-docs_${{env.HELM_DOCS_VERSION}}_Linux_x86_64.tar.gz
+        sudo mv helm-docs /usr/local/sbin
+      env:
+        HELM_DOCS_VERSION: "1.10.0"
+
+    - name: Run helm-docs
+      run: |
+        helm-docs -t README.md.gotmpl -o README.md
+
+    - name: Commit changes to the PR branch
+      if: github.event.pull_request.state == 'open'
+      shell: bash
+      id: commit
+      env:
+        SENDER: ${{ github.event.sender.login }}
+      run: |
+        set -x
+        output=$(git diff --name-only)
+        if [ -n "$output" ]; then
+          echo "Changes detected. Pushing to the PR branch"
+          git config --global user.name 'undergridbot'
+          git config --global user.email '97003863+undergridbot@users.noreply.github.com'
+          git add -A
+          git commit -m "Auto Format"
+          # Prevent looping by not pushing changes in response to changes from undergridbot
+          [[ $SENDER ==  "undergridbot" ]] || git push
+          # Set status to fail, because the push should trigger another status check,
+          # and we use success to indicate the checks are finished.
+          printf "::set-output name=%s::%s\n" "changed" "true"
+          exit 1
+        else
+          printf "::set-output name=%s::%s\n" "changed" "false"
+          echo "No changes detected"
+        fi
