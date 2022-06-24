@@ -1,0 +1,24 @@
+{{- if .Values.controller.enabled -}}
+{{- $fullName := include "boundary.fullname" . }}
+{{- $selectorLabels := include "boundary.selectorLabels" . }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-controller
+spec:
+  type: {{ .Values.controller.service.type }}
+  ports:
+    {{- range $name, $port := .Values.controller.service.ports }}
+    - port: {{ $port.number }}
+      targetPort: {{ $name }}
+      protocol: TCP
+      name: {{ $name }}
+    {{- end }}
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+    app.kubernetes.io/component: boundary-controller
+{{- end -}}

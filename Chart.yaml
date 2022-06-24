@@ -1,0 +1,17 @@
+apiVersion: v2
+name: boundary
+version: 0.1.0
+description: A Helm chart for Hashicorp Boundary deployment
+type: application
+keywords:
+  - Hashicorp
+  - Boundary
+home: https://boundaryproject.io
+sources:
+  - https://github.com/hashicorp/boundary
+  - https://github.com/ugns/boundary-chart
+maintainers:
+  - name: Jeremy T. Bouse
+    email: Jeremy.Bouse@UnderGrid.net
+    url: https://undergrid.net
+appVersion: "0.8.1"

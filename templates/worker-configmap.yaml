@@ -1,0 +1,33 @@
+{{- if .Values.worker.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "boundary.fullname" . }}-worker-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-worker
+  annotations:
+  {{- with .Values.serviceAccount.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+data:
+  {{- $fullname := include "boundary.fullname" . }}
+  boundary-config.hcl: |
+    disable_mlock = true
+    log_format    = "standard"
+    
+    worker {
+      name        = "kubernetes-worker"
+      description = "Boundary kubernetes-worker"
+      controllers = [{{ include "boundary.controller.cluster_address" . | quote }}]
+      public_addr = {{ include "boundary.worker.public_address" . | quote }}
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "proxy"
+      tls_disable = true
+    }
+    {{ include "boundary.worker.kms" . | nindent 4 }}
+{{- end -}}

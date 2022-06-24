@@ -1,0 +1,49 @@
+{{- if .Values.controller.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "boundary.fullname" . }}-controller-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "boundary.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boundary-controller
+  annotations:
+  {{- with .Values.serviceAccount.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+    helm.sh/hook: pre-install,pre-upgrade,pre-rollback
+data:
+  {{- $fullname := include "boundary.fullname" . }}
+  boundary-config.hcl: |
+    disable_mlock = true
+    log_format    = "standard"
+
+    controller {
+      name        = "kubernetes-controller"
+      description = "Boundary kubernetes-controller"
+      database {
+      {{- if .Values.vault.enabled }}
+        url = "file:///vault/secrets/boundary-database-creds"
+      {{- else }}
+        url = "postgresql://{{ default "postgres" .Values.database.username }}:{{ default "postgres" .Values.database.password }}@{{ .Values.database.address }}:{{ default "5432" .Values.database.port }}/{{ default "boundary" .Values.database.name }}{{- if ne .Values.database.ssl true }}?sslmode=disable{{- end }}"
+      {{- end }}
+      }
+      public_cluster_addr = {{ include "boundary.controller.cluster_address" . | quote }}
+    }
+
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "api"
+      tls_disable = true
+    }
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "cluster"
+    }
+    listener "tcp" {
+      address     = "0.0.0.0"
+      purpose     = "ops"
+      tls_disable = true
+    }
+    {{ include "boundary.controller.kms" . | nindent 4 }}
+{{- end -}}

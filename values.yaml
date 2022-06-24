@@ -1,0 +1,215 @@
+# Default values for boundary.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  replicaCount: 3
+
+image:
+  # -- The docker image repository to use
+  repository: hashicorp/boundary
+  # -- the docker image pull policy
+  pullPolicy: IfNotPresent
+  # -- the docker image tag to use 
+  # @default -- Chart appVersion
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecrets: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+controller:
+  # -- Specifies whether Boundary controller should be deployed
+  enabled: true
+  #  -- (int) The number Boundary controller replicas
+  # @default -- global.replicaCount
+  replicaCount:
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  # -- List of options to enable for `boundary database init` call on a fresh installation
+  initOptions: []
+  # - skip-auth-method-creation
+  # - skip-host-resources-creation
+  # - skip-initial-login-role-creation
+  # - skip-scopes-creation
+  # - skip-target-creation
+  service:
+    type: ClusterIP
+    annotations: {}
+    ports: 
+      api:
+        number: 9200
+      cluster:
+        number: 9201
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: boundary.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: api
+    tls: []
+    #  - secretName: boundary-tls
+    #    hosts:
+    #      - boundary.local
+
+worker:
+  enabled: true
+  replicaCount: ""
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  service:
+    type: ClusterIP
+    annotations: {}
+    ports:
+      proxy:
+        number: 9202
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: boundary.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            port: proxy
+    tls: []
+    #  - secretName: boundary-tls
+    #    hosts:
+    #      - boundary.local
+
+database:
+  # -- the Boundary databse name
+  name: boundary
+  # -- the Boundary database hostname
+  address: postgresql
+  # -- the Boundary database username to use. ignored if using Vault
+  username: postgres
+  # -- the Boundary database password to use. ignored if using Vault
+  password: postgres
+  # -- the Boundary database port
+  # @default -- 5432
+  # port: 5432
+  # -- Specify if sslmode should be enabled
+  ssl: false
+
+vault:
+  # -- to enable Hashicorp Vault for Transit KMS keys and database credentials
+  enabled: false
+  # -- the Hashicorp Vault address to use
+  address: http://vault:8200
+  # -- the Hashicorp Vault TLS settings to use
+  tls: {}
+  #   caCert: 
+  #   clientCert:
+  #   clientKey:
+  #   serverName:
+  #   skipVerify:
+  database:
+    # -- to enable Hashicorp Vault lookup for database credentials
+    enabled: false
+    # -- Hashicorp Vault Postgres Database Secret role to use
+    role: boundary
+    # -- Hashicorp Vault secret path for Boundary database admin credentials
+    vaultAdminCredPath: database/static-creds/boundary-db
+    # -- Hashicorp Vault secret path for Boundary database credentials
+    vaultCredPath: database/creds/boundary-db
+
+aead:
+  # -- to enable AEAD KMS keys
+  enabled: true
+
+awskms:
+  # -- to enable AWS KMS keys
+  enabled: false
+
+keys:
+  # For mor information on configuring resouces, see the Boundary KMS AEAD documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/aead
+  # -- the AEAD KMS keys to configure if enabled
+  aead: []
+  # - purpose:
+  #   type: aes-gcm
+  #   id:
+  #   key:
+
+  # For mor information on configuring resouces, see the Boundary KMS transit documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/transit
+  # -- the Hashicorp Vault Transit KMS keys to configure if enabled
+  vault: []
+  # - purpose:
+  #   disableRenewal:
+  #   keyName:
+  #   mountPath:
+  #   namespace:
+
+  # For mor information on configuring resouces, see the Boundary KMS AWS KMS documentation:
+  # https://www.boundaryproject.io/docs/configuration/kms/awskms
+  # -- the AWS KMS keys to configure if enabled
+  awskms: []
+  # - purpose:
+  #   kmsKeyId:
