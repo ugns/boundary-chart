@@ -1,0 +1,59 @@
+name: release-chart
+on:
+  push:
+    tags: 
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_PRIVATE_KEY }}
+          installation_id: ${{ secrets.GH_INSTALLATION_ID }}
+
+      - name: Import GPG key
+        id: import_gpg
+        # TODO: move this to HashiCorp namespace or find alternative that is just simple gpg commands
+        # see https://github.com/hashicorp/terraform-provider-scaffolding/issues/22
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          # These secrets will need to be configured for the repository:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          fingerprint: ${{ secrets.GPG_FINGERPRINT }}
+
+      - name: Prepare GPG key
+        run: |
+          gpg_dir=.cr-gpg
+          mkdir "$gpg_dir"
+          keyring="$gpg_dir/secring.gpg"
+          base64 -d <<< "$GPG_KEYRING_BASE64" > "$keyring"
+          passphrase_file="$gpg_dir/passphrase"
+          echo "$GPG_PASSPHRASE" > "$passphrase_file"
+          echo "CR_PASSPHRASE_FILE=$passphrase_file" >> "$GITHUB_ENV"
+          echo "CR_KEYRING=$keyring" >> "$GITHUB_ENV"
+        env:
+          GPG_KEYRING_BASE64: "${{ secrets.GPG_KEYRING_BASE64 }}"
+          GPG_PASSPHRASE: ${{ secrets.PASSPHRASE }}
+
+      - name: Publish Helm charts
+        uses: helm/chart-releaser-action@v1.4.0
+        with:
+          charts_dir: .
+          config: .github/cr.yaml
+        env:
+          CR_TOKEN: ${{ steps.generate_token.outputs.token }}
+          CR_KEY: ${{ steps.import_gpg.outputs.email }}

@@ -1,0 +1,4 @@
+sign: true
+owner: ugns
+git-repo: helm-charts
+charts-repo-url: https://ugns.github.io/helm-charts
