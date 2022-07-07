@@ -1,4 +1,5 @@
 sign: true
+key: releases@undergrid.net
 owner: ugns
 git-repo: helm-charts
 charts-repo-url: https://ugns.github.io/helm-charts

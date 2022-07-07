@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Generate token
         id: generate_token
@@ -23,17 +25,6 @@ jobs:
           app_id: ${{ secrets.GH_APP_ID }}
           private_key: ${{ secrets.GH_PRIVATE_KEY }}
           installation_id: ${{ secrets.GH_INSTALLATION_ID }}
-
-      - name: Import GPG key
-        id: import_gpg
-        # TODO: move this to HashiCorp namespace or find alternative that is just simple gpg commands
-        # see https://github.com/hashicorp/terraform-provider-scaffolding/issues/22
-        uses: crazy-max/ghaction-import-gpg@v5
-        with:
-          # These secrets will need to be configured for the repository:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          fingerprint: ${{ secrets.GPG_FINGERPRINT }}
 
       - name: Prepare GPG key
         run: |
@@ -53,7 +44,6 @@ jobs:
         uses: helm/chart-releaser-action@v1.4.0
         with:
           charts_dir: .
-          config: .github/cr.yaml
+          config: cr.yaml
         env:
           CR_TOKEN: ${{ steps.generate_token.outputs.token }}
-          CR_KEY: ${{ steps.import_gpg.outputs.email }}
