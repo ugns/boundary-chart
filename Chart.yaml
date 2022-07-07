@@ -15,3 +15,17 @@ maintainers:
     email: Jeremy.Bouse@UnderGrid.net
     url: https://undergrid.net
 appVersion: "0.8.1"
+annotations:
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: Ensure that the ServiceAccount is created before init Job
+      links:
+        - name: GitHub PR
+          url: https://github.com/ugns/boundary-chart/pull/15
+    - kind: added
+      description: Added signKey and operatorCapabilities annotations
+  artifacthub.io/operatorCapabilities: Auto Pilot
+  artifacthub.io/signKey: |
+    fingerprint: 76979A7B52E6F5276F5F02B4A616887B07872891
+    url: https://openpgpkey.undergrid.net/.well-known/openpgpkey/undergrid.net/hu/i4cdqgcarfjdjnba6y4jnf498asg8c6p?l=releases
+ 
