@@ -8,8 +8,7 @@
 ![Kubernetes](https://img.shields.io/badge/kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 [![Helm](https://img.shields.io/badge/helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)](https://helm.sh/)
 
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/boundary&style=for-the-badge)](https://artifacthub.io/packages/search?repo=boundary)
-
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/undergrid)](https://artifacthub.io/packages/search?repo=undergrid)
 ## Description
 
 A Helm chart for Hashicorp Boundary deployment
