@@ -23,7 +23,12 @@ annotations:
         - name: GitHub PR
           url: https://github.com/ugns/boundary-chart/pull/15
     - kind: added
-      description: Added signKey and operatorCapabilities annotations
+      description: Add signKey and operatorCapabilities annotations
+    - kind: added
+      description: Add worker.ingress configuration implementation template
+      links:
+        - name: GitHub Issue
+          url: https://github.com/ugns/boundary-chart/issues/14
   artifacthub.io/operatorCapabilities: Auto Pilot
   artifacthub.io/signKey: |
     fingerprint: 76979A7B52E6F5276F5F02B4A616887B07872891
