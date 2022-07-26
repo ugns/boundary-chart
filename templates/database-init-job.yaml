@@ -12,6 +12,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
     helm.sh/hook: pre-install,pre-upgrade,pre-rollback
+    helm.sh/hook-weight: "0"
 spec:
   template:
     metadata:
