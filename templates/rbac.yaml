@@ -8,6 +8,9 @@ metadata:
   name: {{ include "boundary.fullname" . }}
   namespace: {{ .Release.Namespace }}
 rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get", "watch"]
 - apiGroups: ["batch","apps"]
   resources: ["jobs","deployments"]
   verbs: ["list", "get"]
