@@ -38,11 +38,10 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /bin/sh
-            - "-c"
+          command: ["/bin/boundary", "server"]
           args:
-           - boundary server -config /boundary/boundary-config.hcl
+            - "-config"
+            - "/boundary/boundary-config.hcl"
           env:
             - name: HOSTNAME
               value: boundary

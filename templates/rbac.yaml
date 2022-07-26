@@ -1,8 +1,16 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,pre-rollback
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
   name: {{ include "boundary.fullname" . }}
+  namespace: {{ .Release.Namespace }}
 rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get", "watch"]
 - apiGroups: ["batch","apps"]
   resources: ["jobs","deployments"]
   verbs: ["list", "get"]
@@ -13,10 +21,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,pre-rollback
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: "-5"
   name: {{ include "boundary.fullname" . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: {{ include "boundary.fullname" . }}
 subjects:
 - kind: ServiceAccount
