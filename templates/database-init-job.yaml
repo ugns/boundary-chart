@@ -74,9 +74,11 @@ spec:
               /tools/kubectl wait --for=delete pod -l app.kubernetes.io/component={{ include "boundary.fullname" . }}-controller --timeout=300s || true
               echo "Migrating database..."
               boundary database migrate -config /boundary/boundary-config.hcl || boundary database init {{ include "boundary.database.init" . | trim }} -config /boundary/boundary-config.hcl || sleep infinity
-              {{- if not .Values.controller.autoscaling.enabled }}
-              /tools/kubectl scale --replicas={{ default .Values.global.replicaCount .Values.controller.replicaCount }} deployment/{{ include "boundary.fullname" . }}-controller || true
+              {{- $replicas := default .Values.global.replicaCount .Values.controller.replicaCount }}
+              {{- if .Values.controller.autoscaling.enabled }}
+              {{- $replicas = default .Values.controller.autoscaling.minReplicas }}
               {{- end }}
+              /tools/kubectl scale --replicas={{ $replicas }} deployment/{{ include "boundary.fullname" . }}-controller || true
           env:
             - name: HOSTNAME
               value: boundary
