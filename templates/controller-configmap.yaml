@@ -14,7 +14,7 @@ metadata:
     helm.sh/hook: pre-install,pre-upgrade,pre-rollback
 data:
   {{- $fullname := include "boundary.fullname" . }}
-  boundary-config.hcl: |
+  controller-config.hcl: |
     disable_mlock = true
     log_format    = "standard"
 
@@ -22,7 +22,7 @@ data:
       name        = "kubernetes-controller"
       description = "Boundary kubernetes-controller"
       database {
-      {{- if .Values.vault.enabled }}
+      {{- if and .Values.vault.enabled .Values.vault.database.enabled }}
         url = "file:///vault/secrets/boundary-database-creds"
       {{- else }}
         url = "postgresql://{{ default "postgres" .Values.database.username }}:{{ default "postgres" .Values.database.password }}@{{ .Values.database.address }}:{{ default "5432" .Values.database.port }}/{{ default "boundary" .Values.database.name }}{{- if ne .Values.database.ssl true }}?sslmode=disable{{- end }}"
@@ -45,5 +45,5 @@ data:
       purpose     = "ops"
       tls_disable = true
     }
-    {{ include "boundary.controller.kms" . | nindent 4 }}
+    {{- include "boundary.controller.kms" . | nindent 4 }}
 {{- end -}}
