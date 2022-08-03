@@ -20,18 +20,10 @@ spec:
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and .Values.vault.enabled .Values.vault.database.enabled }}
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/agent-inject-status: "update"
-        vault.hashicorp.com/agent-pre-populate-only: "true"
-        vault.hashicorp.com/agent-cache-enable: "true"
-        {{- with .Values.vault.database }}
-        vault.hashicorp.com/role: {{ .role | quote }}
-        vault.hashicorp.com/agent-inject-secret-boundary-database-creds: {{ .vaultAdminCredPath | quote }}
-        vault.hashicorp.com/agent-inject-template-boundary-database-creds: |
-          {{`{{- with secret `}}{{ .vaultAdminCredPath | quote }}{{` -}}`}}
-          {{`postgresql://{{ .Data.username }}:{{ .Data.password }}`}}@{{ $.Values.database.address }}:{{ default "5432" $.Values.database.port }}/{{ default "boundary" $.Values.database.name }}{{- if ne $.Values.database.ssl true }}?sslmode=disable{{- end }}
-          {{`{{- end }}`}}
+      {{- if .Values.vault.enabled  }}
+        {{- include "vault-agent.annotations" . | nindent 8 }}
+        {{- if .Values.vault.database.enabled }}
+        {{- include "vault-agent.template.annotations.database-creds" (dict "VaultPath" .Values.vault.database.vaultAdminCredPath "globalContext" $) | nindent 8 }}
         {{- end }}
       {{- end }}
       labels:
@@ -72,8 +64,11 @@ spec:
               /tools/kubectl scale --replicas=0 deployment/{{ include "boundary.fullname" . }}-controller || true
               echo "Waiting for pods of '{{ include "boundary.fullname" . }}-controller' deployment to stopped"
               /tools/kubectl wait --for=delete pod -l app.kubernetes.io/component={{ include "boundary.fullname" . }}-controller --timeout=300s || true
+              {{- if .Values.vault.enabled }}
+              export VAULT_TOKEN=$(cat /vault/secrets/token)
+              {{- end }}
               echo "Migrating database..."
-              boundary database migrate -config /boundary/boundary-config.hcl || boundary database init {{ include "boundary.database.init" . | trim }} -config /boundary/boundary-config.hcl || sleep infinity
+              boundary database migrate -config /boundary/controller-config.hcl || boundary database init {{ include "boundary.database.init" . | trim }} -config /boundary/controller-config.hcl || sleep infinity
               {{- $replicas := default .Values.global.replicaCount .Values.controller.replicaCount }}
               {{- if .Values.controller.autoscaling.enabled }}
               {{- $replicas = default .Values.controller.autoscaling.minReplicas }}
@@ -95,12 +90,23 @@ spec:
               readOnly: true
             - mountPath: /tools
               name: tools
+            {{- if and .Values.vault.tls .Values.vault.tls.secretName }}
+            - mountPath: /vault/tls
+              name: vault-tls
+              readOnly: true
+            {{- end }}
       volumes:
         - name: boundary-config
           configMap:
             name: {{ include "boundary.fullname" . }}-controller-config
         - name: tools
           emptyDir: {}
+        {{- if and .Values.vault.tls .Values.vault.tls.secretName }}
+        - name: vault-tls
+          secret:
+            defaultMode: 420
+            secretName: {{ .Values.vault.tls.secretName }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

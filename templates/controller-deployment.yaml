@@ -20,22 +20,15 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/controller-configmap.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and .Values.vault.enabled .Values.vault.database.enabled }}
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/agent-inject-status: "update"
-        vault.hashicorp.com/agent-pre-populate: "true"
-        vault.hashicorp.com/agent-cache-enable: "true"
-        {{- with .Values.vault.database }}
-        vault.hashicorp.com/role: {{ .role | quote }}
-        vault.hashicorp.com/agent-inject-secret-boundary-database-creds: {{ .vaultCredPath | quote }}
-        vault.hashicorp.com/agent-inject-template-boundary-database-creds: |
-          {{`{{- with secret `}}{{ .vaultCredPath | quote }}{{` -}}`}}
-          {{`postgresql://{{ .Data.username }}:{{ .Data.password }}`}}@{{ $.Values.database.address }}:{{ default "5432" $.Values.database.port }}/{{ default "boundary" $.Values.database.name }}{{- if ne $.Values.database.ssl true }}?sslmode=disable{{- end }}
-          {{`{{- end }}`}}
-        {{- end }}
+      {{- if .Values.vault.enabled }}
+        {{- include "vault-agent.annotations" . | nindent 8 }}
+        {{- if .Values.vault.database.enabled }}
+        {{- include "vault-agent.template.annotations.database-creds" (dict "VaultPath" .Values.vault.database.vaultCredPath "globalContext" $) | nindent 8 }}
+        {{- end -}}
       {{- end }}
       labels:
         {{- include "boundary.selectorLabels" . | nindent 8 }}
@@ -62,10 +55,14 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["/bin/boundary", "server"]
+          command: ["/bin/sh", "-ec" ]
           args:
-            - "-config"
-            - "/boundary/boundary-config.hcl"
+            - |
+              {{- if .Values.vault.enabled }}
+              export VAULT_TOKEN=$(cat /vault/secrets/token)
+              rm -f /vault/secrets/token
+              {{- end }}
+              exec /bin/boundary server -config /boundary/controller-config.hcl
           env:
             - name: HOSTNAME
               value: boundary
@@ -80,6 +77,11 @@ spec:
             - name: boundary-config
               mountPath: /boundary
               readOnly: true
+            {{- if and .Values.vault.tls .Values.vault.tls.secretName }}
+            - mountPath: /vault/tls
+              name: vault-tls
+              readOnly: true
+            {{- end }}
           ports:
             - name: api
               containerPort: 9200
@@ -103,6 +105,12 @@ spec:
         - name: boundary-config
           configMap:
             name: {{ include "boundary.fullname" . }}-controller-config
+        {{- if and .Values.vault.tls .Values.vault.tls.secretName }}
+        - name: vault-tls
+          secret:
+            defaultMode: 420
+            secretName: {{ .Values.vault.tls.secretName }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

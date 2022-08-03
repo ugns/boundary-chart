@@ -13,10 +13,10 @@ metadata:
   {{- end }}
 data:
   {{- $fullname := include "boundary.fullname" . }}
-  boundary-config.hcl: |
+  worker-config.hcl: |
     disable_mlock = true
     log_format    = "standard"
-    
+
     worker {
       name        = "kubernetes-worker"
       description = "Boundary kubernetes-worker"

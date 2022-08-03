@@ -207,23 +207,35 @@
           "type": "string",
           "format": "uri"
         },
+        "role": {
+          "type": "string"
+        },
         "tls": {
           "type": "object",
           "properties": {
-            "caCert": {
+            "secretName": {
               "type": "string"
             },
-            "clientCert": {
+            "caCertKey": {
               "type": "string"
             },
-            "clientKey": {
+            "caPublicKey": {
+              "type": "string"
+            },
+            "clientCertKey": {
+              "type": "string"
+            },
+            "clientPublicKey": {
               "type": "string"
             },
             "serverName": {
               "type": "string"
             },
             "skipVerify": {
-              "type": "string"
+              "type": [
+                "boolean",
+                "string"
+              ]
             }
           }
         },
@@ -236,9 +248,6 @@
                 "string"
               ]
             },
-            "role": {
-              "type": "string"
-            },
             "vaultAdminCredPath": {
               "type": "string"
             },
@@ -247,7 +256,14 @@
             }
           }
         }
-      }
+      },
+      "required": [
+        "enabled",
+        "address",
+        "role",
+        "tls",
+        "database"
+      ]
     },
     "aead": {
       "type": "object",

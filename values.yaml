@@ -10,7 +10,7 @@ image:
   repository: hashicorp/boundary
   # -- the docker image pull policy
   pullPolicy: IfNotPresent
-  # -- the docker image tag to use 
+  # -- the docker image tag to use
   # @default -- Chart appVersion
   tag: ""
 
@@ -84,7 +84,7 @@ controller:
   service:
     type: ClusterIP
     annotations: {}
-    ports: 
+    ports:
       api:
         number: 9200
       cluster:
@@ -162,18 +162,28 @@ vault:
   enabled: false
   # -- the Hashicorp Vault address to use
   address: http://vault:8200
+  # -- Role to use to connect to Hashicorp Vault
+  role: boundary
   # -- the Hashicorp Vault TLS settings to use
   tls: {}
-  #   caCert: 
-  #   clientCert:
-  #   clientKey:
-  #   serverName:
-  #   skipVerify:
+    # -- name of the Kubernetes secret containing CA and optionaly TLS Client certificates
+    # secretName: vault-certs
+    # -- key name in the secret containing the CA certificate
+    # caCertKey: "ca.crt"
+    # -- key name in the secret containing the CA public key
+    # caPublicKey: ""
+    # -- key name in the secret containing the client certificate
+    # clientCertKey: ""
+    # -- key name in the secret containing the client public key
+    # clientPublicKey: ""
+    # -- name of the Vault server to verify the authenticity of the server when
+    #    communicating with Vault over TLS
+    # serverName: ""
+    # -- skip verification of Vault's TLS certificate
+    # skipVerify: "false"
   database:
     # -- to enable Hashicorp Vault lookup for database credentials
     enabled: false
-    # -- Hashicorp Vault Postgres Database Secret role to use
-    role: boundary
     # -- Hashicorp Vault secret path for Boundary database admin credentials
     vaultAdminCredPath: database/static-creds/boundary-db
     # -- Hashicorp Vault secret path for Boundary database credentials
